@@ -1,0 +1,18 @@
+services:
+  # Container 1: Aplicação PHP
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
+  # Container 2: Banco de Dados MySQL
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: meu_banco
+      MYSQL_USER: usuario
+      MYSQL_PASSWORD: senha123
+      MYSQL_ROOT_PASSWORD: root_password

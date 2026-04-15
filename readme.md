@@ -1,57 +1,13 @@
-API RESTful Simples em PHP
+Como fazer o deploy:
 
-Esta API permite criar, visualizar, atualizar e deletar usuários usando requisições HTTP.
+1.**Clone este repositório:**
+2. Certifique-se de que o Docker Desktop esteja rodando e execute: docker-compose up -d --build
+3. Verifique se os containers estão ativos: docker ps 
 
-Endpoints e Métodos
+A API está configurada para responder na porta 8080.
 
-Criar usuário
+1. Listar Usuários (GET)
+URL: http://localhost:8080/restfull_api.php?path=users
 
-POST /api.php?path=users
-
-Exemplo de corpo da requisição (JSON):
-
-Resposta:
-
-Listar todos os usuários
-
-GET /api.php?path=users
-
-Resposta:
-
-Obter usuário por ID
-
-GET /api.php?path=users/{id}
-
-Exemplo:
-
-/api.php?path=users/65a3d9f1e
-
-Resposta:
-
-Atualizar usuário
-
-PUT /api.php?path=users/{id}
-
-Exemplo de corpo da requisição:
-
-Resposta:
-
-Deletar usuário
-
-DELETE /api.php?path=users/{id}
-
-Resposta:
-
-Testando com Postman
-
-Abra o Postman.
-
-Crie uma nova requisição e defina o método adequado (GET, POST, PUT, DELETE).
-
-Insira a URL correspondente ao endpoint desejado.
-
-Para requisições POST e PUT, vá para a aba Body, selecione raw, escolha JSON e insira os dados conforme os exemplos acima.
-
-Clique em Send e veja a resposta no painel inferior.
-
-Essa API é uma implementação simples sem autenticação ou banco de dados real, ideal para aprendizado sobre consumo de APIs RESTful.
+2. Cadastrar Usuário (POST)
+URL: http://localhost:8080/restfull_api.php?path=users

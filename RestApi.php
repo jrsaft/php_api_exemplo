@@ -1,58 +1,42 @@
 <?php
-
 header("Content-Type: application/json");
 
-// Arquivo JSON que simula um banco de dados
-const DB_FILE = "db.json";
+// Configurações do banco (vêm do docker-compose)
+$host = 'db';
+$db   = 'meu_banco';
+$user = 'usuario';
+$pass = 'senha123';
+$charset = 'utf8mb4';
 
-// Carrega dados do "banco"
-function loadData() {
-    return file_exists(DB_FILE) ? json_decode(file_get_contents(DB_FILE), true) : [];
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+
+try {
+    $pdo = new PDO($dsn, $user, $pass);
+    // Cria a tabela se não existir (para facilitar seu deploy)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, nome VARCHAR(255), email VARCHAR(255))");
+} catch (\PDOException $e) {
+    echo json_encode(["error" => "Falha na conexão: " . $e->getMessage()]);
+    exit;
 }
 
-// Salva dados no "banco"
-function saveData($data) {
-    file_put_contents(DB_FILE, json_encode($data, JSON_PRETTY_PRINT));
-}
-
-// Obtém a requisição
 $method = $_SERVER['REQUEST_METHOD'];
 $path = isset($_GET['path']) ? explode('/', trim($_GET['path'], '/')) : [];
 
-// Carrega os dados atuais
-$data = loadData();
-
-// Rotas simples para gerenciar "usuários"
+// Rotas
 if ($method == 'GET' && count($path) == 1 && $path[0] == 'users') {
-    echo json_encode($data);
+    $stmt = $pdo->query("SELECT * FROM users");
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+
 } elseif ($method == 'POST' && count($path) == 1 && $path[0] == 'users') {
     $input = json_decode(file_get_contents("php://input"), true);
-    $id = uniqid();
-    $data[$id] = $input;
-    saveData($data);
-    echo json_encode(["message" => "Usuário criado", "id" => $id]);
-} elseif ($method == 'GET' && count($path) == 2 && $path[0] == 'users') {
-    $id = $path[1];
-    echo isset($data[$id]) ? json_encode($data[$id]) : json_encode(["error" => "Usuário não encontrado"]);
-} elseif ($method == 'PUT' && count($path) == 2 && $path[0] == 'users') {
-    $id = $path[1];
-    if (isset($data[$id])) {
-        $input = json_decode(file_get_contents("php://input"), true);
-        $data[$id] = $input;
-        saveData($data);
-        echo json_encode(["message" => "Usuário atualizado"]);
-    } else {
-        echo json_encode(["error" => "Usuário não encontrado"]);
-    }
+    $stmt = $pdo->prepare("INSERT INTO users (nome, email) VALUES (?, ?)");
+    $stmt->execute([$input['nome'], $input['email']]);
+    echo json_encode(["message" => "Usuário criado", "id" => $pdo->lastInsertId()]);
+
 } elseif ($method == 'DELETE' && count($path) == 2 && $path[0] == 'users') {
-    $id = $path[1];
-    if (isset($data[$id])) {
-        unset($data[$id]);
-        saveData($data);
-        echo json_encode(["message" => "Usuário deletado"]);
-    } else {
-        echo json_encode(["error" => "Usuário não encontrado"]);
-    }
+    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+    $stmt->execute([$path[1]]);
+    echo json_encode(["message" => "Usuário deletado"]);
 } else {
-    echo json_encode(["error" => "Rota não encontrada"]);
+    echo json_encode(["error" => "Rota não encontrada ou não implementada"]);
 }
